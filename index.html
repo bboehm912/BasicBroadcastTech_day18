@@ -188,6 +188,7 @@ input, textarea, select {
   padding: 10px;
   border: 1px solid var(--border);
   border-radius: 6px;
+  box-sizing: border-box;
 }
 
 .submit-btn {
@@ -223,8 +224,7 @@ input, textarea, select {
         </div>
         <div>
           <h2>Basic Broadcast Technology: A CTE Pathway Course</h2>
-          <p class="subtitle">Unit 4 - Camera Operations & Framing — Camera Seminar: Shot Critique
-</p>
+          <p class="subtitle">Unit 4 - Camera Operations & Framing — Camera Seminar: Shot Critique</p>
         </div>
       </div>
 
@@ -258,7 +258,7 @@ input, textarea, select {
     </div>
 
     <div id="slide-stage" class="slide-stage">
-      <!-- Slides injected by script.js -->
+      <!-- Slides injected dynamically -->
     </div>
 
     <div class="deck-controls">
@@ -272,7 +272,7 @@ input, textarea, select {
     <h3>Lesson Resource & Reference Hub</h3>
     <p class="muted">Access official course references below.</p>
     <div id="resource-list">
-      <!-- Resources injected by script.js -->
+      <!-- Resources injected dynamically -->
     </div>
   </div>
 
@@ -280,7 +280,7 @@ input, textarea, select {
   <div id="form-tab" class="card tab-content">
     <h3>Student Work Checkpoint & Reflection</h3>
     <form id="checkpoint-form" onsubmit="event.preventDefault(); window.print();">
-      <!-- Dynamic form fields injected by script.js -->
+      <!-- Dynamic form fields injected with full subtext and formatting -->
       <button type="submit" class="submit-btn">Print this page and turn into the Red Basket!</button>
     </form>
   </div>
@@ -292,17 +292,15 @@ let currentSlide = 1;
 let totalSlides = 1;
 let bellringers = [];
 
-// Stock image pool for default visual slides
 const stockImagePool = [
-  'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=300&q=80', // Turtle / Nature
-  'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=300&q=80', // Water / Earth-Diver
-  'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=300&q=80', // Ecology / Forest
-  'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=300&q=80', // Campfire / Orality
-  'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&w=300&q=80', // Literature / History
-  'https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=300&q=80'  // Writing Workshop
+  'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=300&q=80',
+  'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=300&q=80',
+  'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=300&q=80',
+  'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=300&q=80',
+  'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&w=300&q=80',
+  'https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=300&q=80'
 ];
 
-// Emoji fallback pool
 const iconPool = ['🐢', '🌊', '🌱', '🗣️', '☯️', '📝'];
 
 function renderSlides(slides) {
@@ -314,9 +312,7 @@ function renderSlides(slides) {
     wrapper.className = 'slide' + (index === 0 ? ' active' : '');
     wrapper.id = `slide-${index + 1}`;
 
-    // Priority 1: slide.image OR Stock Web Image
     const imageUrl = slide.image || stockImagePool[index % stockImagePool.length];
-    // Fallback: slide.icon OR Emoji Pool
     const fallbackEmoji = slide.icon || iconPool[index % iconPool.length];
 
     const visualMediaHTML = `
@@ -348,6 +344,7 @@ function renderSlides(slides) {
     stage.appendChild(wrapper);
   });
 }
+
 function initLesson(data) {
   bellringers = data.bellringers || [];
   totalSlides = (data.slides || []).length || 1;
@@ -452,30 +449,48 @@ function renderForm(fields) {
     const group = document.createElement('div');
     group.className = 'form-group';
 
-    const label = field.label || field.prompt || `Question ${field.field_id || ''}`.trim() || 'Question';
-    const id = `field_${(field.field_id || label).toString().replace(/\s+/g, '_').toLowerCase()}`;
+    const labelText = field.label || field.prompt || `Question ${field.field_id || ''}`.trim() || 'Question';
+    const subtext = field.subtext || field.description || field.help_text || '';
+    const placeholderAttr = field.placeholder ? `placeholder="${field.placeholder.replace(/"/g, '&quot;')}"` : '';
+    const requiredMarker = field.required ? ' <span style="color: #dc2626;" title="Required">*</span>' : '';
+    const id = `field_${(field.field_id || labelText).toString().replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`;
 
     let inputHTML = '';
     if (field.type === 'short_answer' || field.type === 'short_text' || field.type === 'text') {
-      inputHTML = `<input type="text" id="${id}" ${field.required ? 'required' : ''} />`;
+      inputHTML = `<input type="text" id="${id}" name="${id}" ${placeholderAttr} ${field.required ? 'required' : ''} />`;
     } else if (field.type === 'date') {
-      inputHTML = `<input type="date" id="${id}" ${field.required ? 'required' : ''} />`;
+      inputHTML = `<input type="date" id="${id}" name="${id}" ${field.required ? 'required' : ''} />`;
     } else if (field.type === 'long_text' || field.type === 'quote_citation' || field.type === 'reflection') {
-      inputHTML = `<textarea id="${id}" rows="5" ${field.required ? 'required' : ''}></textarea>`;
+      inputHTML = `<textarea id="${id}" name="${id}" rows="5" ${placeholderAttr} ${field.required ? 'required' : ''}></textarea>`;
     } else if (field.type === 'multiple_choice' || field.type === 'true_false') {
       const options = field.type === 'true_false' ? ['True', 'False'] : (field.options || []);
-      inputHTML = options.map((option, index) => `<label><input type="radio" id="${id}_${index}" name="${id}" value="${option}" ${field.required ? 'required' : ''} /> ${option}</label>`).join('<br/>');
-    } else if (field.type === 'checkbox') {
-      inputHTML = (field.options || []).map((option, index) => `<label><input type="checkbox" id="${id}_${index}" name="${id}" value="${option}" /> ${option}</label>`).join('<br/>');
-    } else if (field.type === 'rating_scale') {
-      inputHTML = `<select id="${id}">${(field.options || []).map(o => `<option>${o}</option>`).join('')}</select>`;
-    } else if (field.type === 'select_rubric') {
-      inputHTML = `<select id="${id}"><option>-- Select Rubric Benchmark Level --</option>${(field.options || []).map(o => `<option>${o}</option>`).join('')}</select>`;
-    } else if (field.type === 'checkbox_group' || field.type === 'multi_select') {
-      inputHTML = (field.options || []).map(o => `<label><input type="checkbox" name="${id}" value="${o}" /> ${o}</label>`).join('<br/>');
+      inputHTML = `<div class="options-container" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">` +
+        options.map((option, index) =>
+          `<label style="font-weight: normal; cursor: pointer; display: flex; align-items: flex-start; gap: 8px;">
+            <input type="radio" id="${id}_${index}" name="${id}" value="${option.replace(/"/g, '&quot;')}" ${field.required ? 'required' : ''} style="width: auto; margin-top: 3px;" />
+            <span>${option}</span>
+           </label>`
+        ).join('') + `</div>`;
+    } else if (field.type === 'checkbox' || field.type === 'checkbox_group' || field.type === 'multi_select') {
+      const options = field.options || [];
+      inputHTML = `<div class="options-container" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">` +
+        options.map((option, index) =>
+          `<label style="font-weight: normal; cursor: pointer; display: flex; align-items: flex-start; gap: 8px;">
+            <input type="checkbox" id="${id}_${index}" name="${id}[]" value="${option.replace(/"/g, '&quot;')}" style="width: auto; margin-top: 3px;" />
+            <span>${option}</span>
+           </label>`
+        ).join('') + `</div>`;
+    } else if (field.type === 'rating_scale' || field.type === 'select_rubric') {
+      const options = field.options || [];
+      inputHTML = `<select id="${id}" name="${id}" ${field.required ? 'required' : ''} style="margin-top: 6px;">
+        <option value="">-- Select an Option --</option>
+        ${options.map(o => `<option value="${o.replace(/"/g, '&quot;')}">${o}</option>`).join('')}
+      </select>`;
     }
 
-    group.innerHTML = `<label for="${id}">${label}</label>${inputHTML}`;
+    const subtextHTML = subtext ? `<p class="field-subtext" style="margin: 4px 0 10px 0; font-size: 0.9em; color: var(--text-muted); font-style: italic;">${subtext}</p>` : '';
+
+    group.innerHTML = `<label for="${id}">${labelText}${requiredMarker}</label>${subtextHTML}${inputHTML}`;
     form.appendChild(group);
   });
 
@@ -497,6 +512,7 @@ function switchTab(key) {
     document.getElementById('form-tab').classList.add('active');
   }
 }
+
 window.addEventListener('DOMContentLoaded', () => initLesson({"course_title": "Basic Broadcast Technology: A CTE Pathway Course", "unit": "Unit 4 - Camera Operations & Framing", "day": 18, "week": 4, "weekly_focus": "Composition; rule of thirds; depth of field; Daktronics visual layouts (CTE-CTB MN State Standards: CTB.03.01 & CTB.03.02).", "bellringers": ["What visual error occurs when a videographer fails to leave adequate 'headroom' above an anchor?", "How does adjusting aperture (f-stop) impact shallow vs. deep depth of field in studio footage?", "Quick-write: Why is 'lead room' essential when tracking a running athlete in live sports broadcasting?", "Identify one mistake in camera placement that breaks grid alignment on a 3x3 Rule of Thirds overlay."], "slides": [{"title": "Camera Seminar: Field Footage Shot Critique", "standard": "CTE-CTB Standard CTB.03.01", "bullets": ["Analyze field-gathered raw video clips to identify technical and artistic framing errors.", "Evaluate proper application of Rule of Thirds, lead room, headroom, and eye-level alignment.", "Develop technical vocabulary required for professional broadcast control room critiques."], "callout": "Seminar Focus: Professional operators spot framing mistakes in split seconds and correct them live."}, {"title": "Technical vs. Artistic Shot Composition", "standard": "CTE-CTB Standard CTB.03.01", "bullets": ["Distinguish between technical accuracy (focus, exposure, white balance) and artistic framing.", "Examine how bad composition distracts viewers from broadcast news stories.", "Analyze real student footage examples showing ideal vs. flawed camera setups."], "callout": "Rule of Thumb: If the viewer notices the camera framing, the operator made a mistake."}, {"title": "Framing Error #1: Improper Headroom & Nose Room", "standard": "CTE-CTB Standard CTB.03.01", "bullets": ["Deconstruct 'headroom': leaving too much dead space above the head vs. cutting off the forehead.", "Analyze 'nose room' (look space): placing off-camera interviewees along grid power points.", "Cite examples of claustrophobic framing vs. floating talent in wide shots."], "callout": "Correct Setup: Talent's eyes should align with the top horizontal line of the 3x3 grid."}, {"title": "Framing Error #2: Cutting Off Joints & Awkward Cropping", "standard": "CTE-CTB Standard CTB.03.01", "bullets": ["Identify the 'joint rule': never crop a subject directly at elbows, wrists, knees, or neck.", "Examine standard shot classifications: ECU, MCU, MS, MLS, and WS framing boundaries.", "Evaluate how improper cropping makes interview subjects look dismembered on screen."], "callout": "Cropping Rule: Frame midway between joints (e.g., mid-chest, mid-thigh) for natural aesthetics."}, {"title": "Rule of Thirds Review: Grid Power Points", "standard": "CTE-CTB Standard CTB.03.01", "bullets": ["Review placing key focal elements (eyes, horizon, main action) on grid intersections.", "Evaluate student field shots that place subjects dead-center versus dynamic third placement.", "Analyze when asymmetric framing is visually superior for lower-third graphic overlays."], "callout": "Composition Strategy: Off-center subject placement leaves clean real estate for graphics."}, {"title": "Depth of Field Control & Lens Selection", "standard": "CTE-CTB Standard CTB.03.01", "bullets": ["Analyze how aperture (f-stop), focal length (mm), and distance alter depth of field.", "Evaluate shallow depth of field for cinematic stand-up interviews vs. deep DOF for sports.", "Identify out-of-focus background distractions that compete with the main subject."], "callout": "DOF Choice: Shallow depth of field isolates anchors from noisy, distracting backgrounds."}, {"title": "Lead Room & Vector Lines in Action Shots", "standard": "CTE-CTB Standard CTB.03.01", "bullets": ["Deconstruct motion vectors: giving moving subjects walking or driving room ahead of movement.", "Critique footage where fast-moving athletes run off-screen due to poor pan speed.", "Practice predicting subject motion to maintain consistent framing during live tracking."], "callout": "Action Framing: Always pan ahead of the action so the subject moves into open space."}, {"title": "Lighting & Contrast Flaws in Field Video", "standard": "CTE-CTB Standard CTB.03.01", "bullets": ["Identify backlighting errors where bright windows render interview subjects as silhouettes.", "Evaluate lens flare, harsh shadows, and improper color temperature balance (3200K vs 5600K).", "Recommend quick field fixes: using reflectors, changing camera angles, or re-positioning talent."], "callout": "Exposure Check: Use zebra patterns to spot blown-out highlights on talent faces."}, {"title": "Daktronics Graphic Safe Zones & Multi-Zone Layouts", "standard": "CTE-CTB Standard CTB.03.02", "bullets": ["Examine title safe and action safe boundaries for live Daktronics video board displays.", "Analyze how camera framing must account for multi-zone layouts (scorebugs, tickers, ads).", "Critique student footage where lower-third graphics obscured talent faces."], "callout": "Layout Rule: Keep critical visual action inside the inner 80% Title Safe area."}, {"title": "Peer Critique Protocol: Constructive Directives", "standard": "CTE-CTB Standard CTB.03.01", "bullets": ["Practice using standard director commands (e.g., 'Pan right', 'Tilt down', 'Tighten headroom').", "Conduct peer evaluations using the Shot Critique Matrix scoring sheet.", "Formulate specific technical remedies for each identified framing mistake."], "callout": "Control Room Speak: Give clear, actionable feedback using standardized industry terminology."}, {"title": "Live Field Footage Spot-Check Activity", "standard": "CTE-CTB Standard CTB.03.01", "bullets": ["Review 5 unedited student camera clips recorded during field assignments.", "Identify all instances of headroom, lead room, horizon tilt, and focus errors.", "Log timecode markers and technical corrections on the Most Common Framing Errors Handout."], "callout": "Hands-On Task: Identify the framing flaw within 5 seconds of clip playback."}, {"title": "Corrective Action & Technical Remediation", "standard": "CTE-CTB Standard CTB.03.02", "bullets": ["Summarize top three recurring framing errors across class field footage.", "Develop an individual shot-remediation plan for tomorrow's re-shoot session.", "Submit completed Most Common Framing Errors Handout and critique log."], "callout": "Deliverable: Completed Framing Errors Handout & Camera Shot Critique Log."}], "resources": {"title": "Broadcast Field Operations & Shot Critique Resources", "description": "Reference guides and critique checklists for technical and artistic shot composition.", "items": [{"label": "Most Common Framing Errors Handout PDF", "file": "Most_Common_Framing_Errors_Handout.pdf", "description": "Visual guide detailing common broadcast framing errors including improper headroom, joint cropping, missing lead room, and graphic safe violations."}]}, "form": [{"field_id": 1, "type": "short_answer", "label": "Student Name & Production Crew Number", "placeholder": "Enter full name and crew #...", "required": true}, {"field_id": 2, "type": "multiple_choice", "label": "1. Headroom Evaluation (Multiple Choice)", "subtext": "What is the primary technical issue when a camera shot leaves 40% dead space above an anchor's head?", "options": ["A) Excessive headroom, making the talent appear small and sinking out of frame.", "B) Improper focal length, creating fish-eye distortion.", "C) Lack of lead room for horizontal motion vectors.", "D) Incorrect zebra pattern calibration."], "required": true}, {"field_id": 3, "type": "multiple_choice", "label": "2. Rule of Thirds Grid Alignment (Multiple Choice)", "subtext": "Where should an interview subject's eyes ideally be positioned on a standard 3x3 framing grid?", "options": ["A) Exactly along the bottom horizontal line.", "B) Along the top horizontal line, positioned at one of the power point intersections.", "C) Dead-center in the middle box of the grid.", "D) Touched against the left vertical border."], "required": true}, {"field_id": 4, "type": "checkbox_group", "label": "3. Common Framing Violations (Multi-Select)", "subtext": "Select ALL framing practices that violate broadcast industry standards:", "options": ["Cropping a medium close-up shot directly at a person's neck or knees.", "Placing an anchor's face behind a lower-third graphic zone in a multi-zone layout.", "Panning ahead of a running athlete to leave adequate lead room in the frame direction.", "Positioning an interview subject facing toward the tight edge of the frame without nose room."]}, {"field_id": 5, "type": "short_answer", "label": "4. Technical Command Identification", "subtext": "What standard director command would you give a camera operator whose shot cuts off the top of the anchor's hair?", "placeholder": "Enter precise director command...", "required": true}, {"field_id": 6, "type": "reflection", "label": "5. Depth of Field Application", "subtext": "Explain when a videographer should choose shallow depth of field versus deep depth of field in broadcast production.", "placeholder": "Compare studio interview setups with live sports field coverage...", "required": true}, {"field_id": 7, "type": "reflection", "label": "6. Daktronics Layout Integration Analysis", "subtext": "How do multi-zone display layouts (e.g., scorebugs, side banners) alter how a camera operator must frame a live game shot?", "placeholder": "Explain how graphics dictate camera framing and safe zones...", "required": true}, {"field_id": 8, "type": "multiple_choice", "label": "7. Motion Vector Framing", "subtext": "When tracking a basketball player driving down the court, where should the camera operator center the player in the frame?", "options": ["A) Trailing behind the player so the court behind them is visible.", "B) Slightly off-center, leaving lead room in front of the player's direction of motion.", "C) Panning wildly to keep the player in the exact geometric center.", "D) Zoomed in extremely tight on the player's sneakers."], "required": true}, {"field_id": 9, "type": "reflection", "label": "8. Student Shot Critique Summary", "subtext": "Based on the handout 'Most Common Framing Errors', identify one framing error found in your own field footage and explain how you will fix it during re-shoots.", "placeholder": "Identify clip error and describe the technical correction...", "required": true}, {"field_id": 10, "type": "rating_scale", "label": "9. Self-Assessment: Technical Camera Skills", "subtext": "Rate your ability to compose professional broadcast shots and identify framing errors:", "options": ["Level 4 - Advanced: I can consistently frame shots applying Rule of Thirds, DOF, lead room, and correct errors live.", "Level 3 - Proficient: I can spot headroom and nose room flaws in recorded footage and correct them.", "Level 2 - Developing: I understand basic framing concepts but forget lead room during live motion.", "Level 1 - Beginning: I need assistance setting up a tripod and framing talent."], "required": true}]}));
 </script>
 </body>
